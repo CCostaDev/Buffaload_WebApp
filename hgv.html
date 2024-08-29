@@ -8,43 +8,49 @@
     <link rel="stylesheet" href="mediaqueries.css" />
   </head>
   <body>
-    <nav id="desktop-nav">
-      <div class="logo">
-        <img
-          src="assets/Buffaload_RGB_Logo.svg"
-          alt="Buffaload Logistics Logo"
-        />
-      </div>
-      <div>
-        <ul class="nav-links">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="hgv.html">HGVs</a></li>
-          <li><a href="tippers.html">Tippers</a></li>
-        </ul>
-      </div>
-    </nav>
-    <nav id="hamburger-nav">
-      <div class="logo">
-        <img
-          src="assets/Buffaload_RGB_Logo.svg"
-          alt="Buffaload Logistics Logo"
-        />
-      </div>
-      <div class="hamburger-menu">
-        <div class="hamburger-icon" onclick="toggleMenu()">
-          <span></span>
-          <span></span>
-          <span></span>
+    <header>
+      <nav id="desktop-nav">
+        <div class="logo">
+          <img
+            src="assets/Buffaload_RGB_Logo.svg"
+            alt="Buffaload Logistics Logo"
+          />
         </div>
-        <div class="menu-links">
-          <li><a href="index.html" onclick="toggleMenu()">Home</a></li>
-          <li><a href="hgv.html" onclick="toggleMenu()">HGVs</a></li>
-          <li><a href="tippers.html" onclick="toggleMenu()">Tippers</a></li>
+        <div>
+          <ul class="nav-links">
+            <li class="nav-item"><a href="index.html">Home</a></li>
+            <li class="nav-item"><a href="hgv.html">HGVs</a></li>
+            <li class="nav-item"><a href="tippers.html">Tippers</a></li>
+          </ul>
         </div>
-      </div>
-    </nav>
-    <h1>HGVs Stopped for More Than 45 Minutes</h1>
-    <ul id="vehicle-list"></ul>
+      </nav>
+      <nav id="hamburger-nav">
+        <div class="logo">
+          <img
+            src="assets/Buffaload_RGB_Logo.svg"
+            alt="Buffaload Logistics Logo"
+          />
+        </div>
+        <div class="hamburger-menu">
+          <div class="hamburger-icon" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="menu-links">
+            <li><a href="index.html" onclick="toggleMenu()">Home</a></li>
+            <li><a href="hgv.html" onclick="toggleMenu()">HGVs</a></li>
+            <li><a href="tippers.html" onclick="toggleMenu()">Tippers</a></li>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <h1>HGVs Stopped for More Than 45 Minutes</h1>
+      <ul id="vehicle-list" class="card-list"></ul>
+    </main>
+
     <script src="script.js"></script>
   </body>
 </html>
