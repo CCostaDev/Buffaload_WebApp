@@ -88,7 +88,13 @@ function displayVehicles(vehicles) {
     const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
 
     const li = document.createElement("li");
-    li.textContent = `Registration: ${vehicle.assetRegistration}, Last Update: ${diffInMinutes} Min ago, Location: ${vehicle.formattedAddress}`;
+    li.innerHTML = `
+    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    </br>Location:</br>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      vehicle.formattedAddress
+    )}" target="_blank">${vehicle.formattedAddress}</a></div>`;
     vehicleList.appendChild(li);
   });
 }
@@ -116,7 +122,13 @@ function displayTippers(vehicles) {
     const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
 
     const li = document.createElement("li");
-    li.textContent = `Registration: ${vehicle.assetRegistration}, Last Update: ${diffInMinutes} Min ago, Location: ${vehicle.formattedAddress}`;
+    li.innerHTML = `
+    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    </br>Location:</br>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      vehicle.formattedAddress
+    )}" target="_blank">${vehicle.formattedAddress}</a></div>`;
     tippersList.appendChild(li);
   });
 }
