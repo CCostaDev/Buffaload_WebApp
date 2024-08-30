@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="Services" content="width=device-width, initial-scale=1.0" />
+    <title>Services</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="mediaqueries.css" />
+  </head>
+  <body>
+    <header>
+      <nav id="desktop-nav">
+        <div class="logo">
+          <img
+            src="assets/Buffaload_RGB_Logo.svg"
+            alt="Buffaload Logistics Logo"
+          />
+        </div>
+        <div>
+          <ul class="nav-links">
+            <li class="nav-item"><a href="index.html">Home</a></li>
+            <li class="nav-item"><a href="hgv.html">HGVs</a></li>
+            <li class="nav-item"><a href="tippers.html">Tippers</a></li>
+            <li class="nav-item"><a href="services.html">Services</a></li>
+            <li class="nav-item"><a href="depots.html">Depots</a></li>
+          </ul>
+        </div>
+      </nav>
+      <nav id="hamburger-nav">
+        <div class="logo">
+          <img
+            src="assets/Buffaload_RGB_Logo.svg"
+            alt="Buffaload Logistics Logo"
+          />
+        </div>
+        <div class="hamburger-menu">
+          <div class="hamburger-icon" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="menu-links">
+            <li><a href="index.html" onclick="toggleMenu()">Home</a></li>
+            <li><a href="hgv.html" onclick="toggleMenu()">HGVs</a></li>
+            <li><a href="tippers.html" onclick="toggleMenu()">Tippers</a></li>
+            <li><a href="services.html" onclick="toggleMenu()">Services</a></li>
+            <li><a href="depots.html" onclick="toggleMenu()">Depots</a></li>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <h1>Vehicles Stopped in Services</h1>
+      <ul id="vehicle-list" class="card-list"></ul>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
