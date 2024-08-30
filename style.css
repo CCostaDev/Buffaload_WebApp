@@ -40,6 +40,9 @@ main {
   align-items: center;
 }
 
+h1 {
+  margin-bottom: 10px;
+}
 /* TRANSITION */
 
 a,
