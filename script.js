@@ -153,12 +153,26 @@ function displayVehicles(vehicles) {
   vehicles.forEach((vehicle) => {
     const now = Date.now();
     const lastUpdate = new Date(vehicle.date).getTime();
-    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+    const timeDifference = now - lastUpdate;
+
+    // Convert time difference to minutes, hours and days
+    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    let timeSinceUpdate = "";
+    if (days > 0) {
+      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      timeSinceUpdate = `${hours}h ${minutes}m`;
+    } else {
+      timeSinceUpdate = `${minutes}m`;
+    }
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
-    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
@@ -191,12 +205,26 @@ function displayTippers(vehicles) {
   vehicles.forEach((vehicle) => {
     const now = Date.now();
     const lastUpdate = new Date(vehicle.date).getTime();
-    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+    const timeDifference = now - lastUpdate;
+
+    // Convert time difference to minutes, hours and days
+    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    let timeSinceUpdate = "";
+    if (days > 0) {
+      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      timeSinceUpdate = `${hours}h ${minutes}m`;
+    } else {
+      timeSinceUpdate = `${minutes}m`;
+    }
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
-    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
@@ -230,12 +258,26 @@ function displayServices(vehicles) {
   vehicles.forEach((vehicle) => {
     const now = Date.now();
     const lastUpdate = new Date(vehicle.date).getTime();
-    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+    const timeDifference = now - lastUpdate;
+
+    // Convert time difference to minutes, hours and days
+    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    let timeSinceUpdate = "";
+    if (days > 0) {
+      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      timeSinceUpdate = `${hours}h ${minutes}m`;
+    } else {
+      timeSinceUpdate = `${minutes}m`;
+    }
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
-    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
@@ -268,12 +310,26 @@ function displayDepots(vehicles) {
   vehicles.forEach((vehicle) => {
     const now = Date.now();
     const lastUpdate = new Date(vehicle.date).getTime();
-    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+    const timeDifference = now - lastUpdate;
+
+    // Convert time difference to minutes, hours and days
+    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    let timeSinceUpdate = "";
+    if (days > 0) {
+      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      timeSinceUpdate = `${hours}h ${minutes}m`;
+    } else {
+      timeSinceUpdate = `${minutes}m`;
+    }
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
-    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
