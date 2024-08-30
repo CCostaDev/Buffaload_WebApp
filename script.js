@@ -20,31 +20,32 @@ function filterStoppedVehicles(vehicles) {
   const now = Date.now();
   const fifteenHoursAgo = now - 15 * 60 * 60 * 1000; // 15 hours in milliseconds
 
+  // List of location groups to filter out
+  const excludedLocationGroups = ["Buffaload", "Maintenance"];
+
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
     const lastUpdate = new Date(vehicle.date).getTime();
     const stoppedLongEnough = now - lastUpdate > stopDuration;
     const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
-    //const notEndOfJourney = vehicle.status !== "endOfJourney"; //endOfJourney is displayed whenever a vehicle is stopped and not at the end of the journey - to look into
 
-    // Only include vehicles not at "Grove Lane" and "BUFFALOAD ELLINGTON"
-    const locationNotBuffaload =
-      vehicle.formattedAddress &&
-      !vehicle.formattedAddress.includes("Grove Lane");
-    const locationNotEllington = vehicle.locationName !== "BUFFALOAD ELLINGTON";
+    // Check if vehicle's location group is in the excluded list
+    const isExcludedLocationGroup =
+      vehicle.locationGroupName &&
+      excludedLocationGroups.includes(vehicle.locationGroupName);
 
     return (
       isHGV &&
       isStopped &&
       withinFifteenHours &&
-      //notEndOfJourney &&
-      locationNotBuffaload &&
-      locationNotEllington &&
+      !isExcludedLocationGroup &&
       stoppedLongEnough
     );
   });
 }
+
+// TIPPERS
 
 function filterTippers(vehicles) {
   const now = Date.now();
@@ -55,21 +56,21 @@ function filterTippers(vehicles) {
     const lastUpdate = new Date(vehicle.date).getTime();
     const stoppedForLongEnough = now - lastUpdate > tipperStopDuration;
 
-    // Exclude specific location
-    const locationNotBuffaload =
-      vehicle.formattedAddress &&
-      !vehicle.formattedAddress.includes("Grove Lane");
-    const locationNotEllington = vehicle.locationName !== "BUFFALOAD ELLINGTON";
+    // List of location groups to filter out
+    const excludedLocationGroups = ["Buffaload", "Maintenance"];
+
+    // Check if vehicle's location group is in the excluded list
+    const isExcludedLocationGroup =
+      vehicle.locationGroupName &&
+      excludedLocationGroups.includes(vehicle.locationGroupName);
 
     return (
-      isTippers &&
-      isStopped &&
-      stoppedForLongEnough &&
-      locationNotBuffaload &&
-      locationNotEllington
+      isTippers && isStopped && stoppedForLongEnough && !isExcludedLocationGroup
     );
   });
 }
+
+// DISPLAY HGVs
 
 function displayVehicles(vehicles) {
   const vehicleList = document.getElementById("vehicle-list");
@@ -100,6 +101,8 @@ function displayVehicles(vehicles) {
     vehicleList.appendChild(li);
   });
 }
+
+// DISPLAY TIPPERS
 
 function displayTippers(vehicles) {
   const tippersList = document.getElementById("tippers-list");
@@ -136,6 +139,8 @@ function displayTippers(vehicles) {
     tippersList.appendChild(li);
   });
 }
+
+// EVENT LISTENER
 
 document.addEventListener("DOMContentLoaded", async () => {
   const vehicles = await fetchVehicles();
