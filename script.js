@@ -14,7 +14,7 @@ async function fetchVehicles() {
   }
 }
 
-// HGVs
+// FILTER HGVs
 
 function filterStoppedVehicles(vehicles) {
   const now = Date.now();
@@ -45,7 +45,7 @@ function filterStoppedVehicles(vehicles) {
   });
 }
 
-// TIPPERS
+// FILTER TIPPERS
 
 function filterTippers(vehicles) {
   const now = Date.now();
@@ -66,6 +66,73 @@ function filterTippers(vehicles) {
 
     return (
       isTippers && isStopped && stoppedForLongEnough && !isExcludedLocationGroup
+    );
+  });
+}
+
+// FILTER HGVs IN SERVICES
+
+function filterStoppedVehiclesInServices(vehicles) {
+  const now = Date.now();
+  const fifteenHoursAgo = now - 15 * 60 * 60 * 1000; // 15 hours in milliseconds
+
+  // List of location groups to filter out
+  const includedLocationGroups = [
+    "Gas Stations",
+    "Fuel Station",
+    "Parking",
+    "Service",
+    "Services and Truckstops",
+  ];
+
+  return vehicles.filter((vehicle) => {
+    const isHGV = vehicle.assetType === "HGV";
+    const isStopped = vehicle.eventType === "stopped";
+    const lastUpdate = new Date(vehicle.date).getTime();
+    const stoppedLongEnough = now - lastUpdate > stopDuration;
+    const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
+
+    // Check if vehicle's location group is in the included list
+    const isIncludedLocationGroup =
+      vehicle.locationGroupName &&
+      includedLocationGroups.includes(vehicle.locationGroupName);
+
+    return (
+      isHGV &&
+      isStopped &&
+      withinFifteenHours &&
+      isIncludedLocationGroup &&
+      stoppedLongEnough
+    );
+  });
+}
+
+// FILTER HGVs IN DEPOTS
+
+function filterStoppedVehiclesInDepots(vehicles) {
+  const now = Date.now();
+  //const fifteenHoursAgo = now - 15 * 60 * 60 * 1000; // 15 hours in milliseconds
+
+  // List of location groups to filter out
+  const includedLocationGroups = ["Buffaload"];
+
+  return vehicles.filter((vehicle) => {
+    const isHGV = vehicle.assetType === "HGV";
+    const isStopped = vehicle.eventType === "stopped";
+    const lastUpdate = new Date(vehicle.date).getTime();
+    //const stoppedLongEnough = now - lastUpdate > stopDuration;
+    //const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
+
+    const isIncludedLocationGroup =
+      vehicle.locationGroupName &&
+      includedLocationGroups.includes(vehicle.locationGroupName);
+
+    return (
+      isHGV &&
+      isStopped &&
+      //withinFifteenHours &&
+      isIncludedLocationGroup
+      //stoppedLongEnough
     );
   });
 }
@@ -140,40 +207,137 @@ function displayTippers(vehicles) {
   });
 }
 
+// DISPLAY SERVICES
+
+function displayServices(vehicles) {
+  const servicesList = document.getElementById("services-list");
+
+  if (!servicesList) {
+    console.error("Element with id 'services-list' not found.");
+    return;
+  }
+
+  servicesList.innerHTML = "";
+
+  if (vehicles.length === 0) {
+    const noVehiclesMessage = document.createElement("li");
+    noVehiclesMessage.textContent =
+      "No vehicles currently stopped at services.";
+    servicesList.appendChild(noVehiclesMessage);
+    return;
+  }
+
+  vehicles.forEach((vehicle) => {
+    const now = Date.now();
+    const lastUpdate = new Date(vehicle.date).getTime();
+    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    </br>Location:</br>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      vehicle.formattedAddress
+    )}" target="_blank">${
+      vehicle.locationName || vehicle.formattedAddress
+    }</a></div>`;
+    servicesList.appendChild(li);
+  });
+}
+
+// DISPLAY DEPOTS
+
+function displayDepots(vehicles) {
+  const depotsList = document.getElementById("depots-list");
+
+  if (!depotsList) {
+    console.error("Element with id 'depots-list' not found.");
+    return;
+  }
+
+  depotsList.innerHTML = "";
+
+  if (vehicles.length === 0) {
+    const noVehiclesMessage = document.createElement("li");
+    noVehiclesMessage.textContent = "No vehicles currently stopped at depots.";
+    depotsList.appendChild(noVehiclesMessage);
+    return;
+  }
+
+  vehicles.forEach((vehicle) => {
+    const now = Date.now();
+    const lastUpdate = new Date(vehicle.date).getTime();
+    const diffInMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-content">Last Update: </br><b>${diffInMinutes}</b> Min ago </br>
+    </br>Location:</br>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      vehicle.formattedAddress
+    )}" target="_blank">${
+      vehicle.locationName || vehicle.formattedAddress
+    }</a></div>`;
+    depotsList.appendChild(li);
+  });
+}
+
 // EVENT LISTENER
 
 document.addEventListener("DOMContentLoaded", async () => {
   const vehicles = await fetchVehicles();
 
   if (document.getElementById("vehicle-list")) {
-    // Code specific to HGVs page
+    // Logic for HGVs page
     const stoppedVehicles = filterStoppedVehicles(vehicles);
     console.log("Stopped Vehicles:", stoppedVehicles);
     displayVehicles(stoppedVehicles);
-  }
-
-  if (document.getElementById("tippers-list")) {
-    // Code specific to Tippers page
+  } else if (document.getElementById("tippers-list")) {
+    // Logic for Tippers page
     const stoppedTippers = filterTippers(vehicles);
     console.log("Stopped Tippers:", stoppedTippers);
     displayTippers(stoppedTippers);
+  } else if (document.getElementById("services-list")) {
+    // Logic for Services page
+    const stoppedServices = filterStoppedVehiclesInServices(vehicles);
+    console.log("Stopped in Services:", stoppedServices);
+    displayServices(stoppedServices);
+  } else if (document.getElementById("depots-list")) {
+    // Logic for Depots page
+    const stoppedDepots = filterStoppedVehiclesInDepots(vehicles);
+    console.log("Stopped in Depots:", stoppedDepots);
+    displayDepots(stoppedDepots);
   }
 });
 
 // Set up auto-refresh every 30 seconds
 setInterval(async () => {
+  const vehicles = await fetchVehicles();
+
   if (document.getElementById("vehicle-list")) {
-    const vehicles = await fetchVehicles();
     const stoppedVehicles = filterStoppedVehicles(vehicles);
     console.log("Stopped Vehicles:", stoppedVehicles);
     displayVehicles(stoppedVehicles);
   }
 
   if (document.getElementById("tippers-list")) {
-    const vehicles = await fetchVehicles();
     const stoppedTippers = filterTippers(vehicles);
     console.log("Stopped Tippers:", stoppedTippers);
     displayTippers(stoppedTippers);
+  }
+
+  if (document.getElementById("services-list")) {
+    const stoppedServices = filterStoppedVehiclesInServices(vehicles);
+    console.log("Stopped in Services:", stoppedServices);
+    displayServices(stoppedServices);
+  }
+
+  if (document.getElementById("depots-list")) {
+    const stoppedDepots = filterStoppedVehiclesInDepots(vehicles);
+    console.log("Stopped in Depots:", stoppedDepots);
+    displayDepots(stoppedDepots);
   }
 }, refreshInterval);
 
