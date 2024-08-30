@@ -94,7 +94,9 @@ function displayVehicles(vehicles) {
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
-    )}" target="_blank">${vehicle.formattedAddress}</a></div>`;
+    )}" target="_blank">${
+      vehicle.locationName || vehicle.formattedAddress
+    }</a></div>`;
     vehicleList.appendChild(li);
   });
 }
@@ -128,7 +130,9 @@ function displayTippers(vehicles) {
     </br>Location:</br>
     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       vehicle.formattedAddress
-    )}" target="_blank">${vehicle.formattedAddress}</a></div>`;
+    )}" target="_blank">${
+      vehicle.locationName || vehicle.formattedAddress
+    }</a></div>`;
     tippersList.appendChild(li);
   });
 }
