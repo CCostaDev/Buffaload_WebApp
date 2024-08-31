@@ -31,11 +31,6 @@ async function fetchVehicleData() {
   return await response.json();
 }
 
-// Default route to confirm server is running
-app.get("/", (req, res) => {
-  res.send("Server is up and running!");
-});
-
 // Route to handle the favicon request to avoid 404 errors
 app.get("/favicon.ico", (req, res) => {
   res.status(204).end(); // No content
@@ -49,14 +44,15 @@ app.get("/api/vehicles", async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching vehicle data:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    const statusCode = error.response ? error.response.status : 500;
+    res.status(statusCode).json({ message: "Failed to fetch vehicle data" });
   }
+});
+
+// Handle favicon requests to avoid 404 errors
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end();
 });
 
 // Export the app as the default export
 export default app;
-
-// Also export as a lambda handler for Vercel (just in case)
-export const handler = (req, res) => {
-  app(req, res);
-};
