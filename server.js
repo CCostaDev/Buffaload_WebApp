@@ -2,12 +2,17 @@ import express from "express";
 import fetch from "node-fetch";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
 const app = express();
 
+// Enable CORS
 app.use(cors());
+
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, "public")));
 
 const apiURL = `https://api.masternautconnect.com/connect-webservices/services/public/v1/customer/${process.env.API_CUSTOMER_ID}/tracking/live`;
 const username = process.env.API_USERNAME;
@@ -31,12 +36,7 @@ async function fetchVehicleData() {
   return await response.json();
 }
 
-// Route to handle the favicon request to avoid 404 errors
-app.get("/favicon.ico", (req, res) => {
-  res.status(204).end(); // No content
-});
-
-// API route to fetch vehicle data
+// API endpoint to get vehicle data
 app.get("/api/vehicles", async (req, res) => {
   try {
     const data = await fetchVehicleData();
@@ -49,11 +49,29 @@ app.get("/api/vehicles", async (req, res) => {
   }
 });
 
-// Handle favicon requests to avoid 404 errors
+// Handle requests to the root URL
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Redirect requests for favicon.ico to the external URL
 app.get("/favicon.ico", (req, res) => {
   res.redirect(
     "https://buffaload.co.uk/wp-content/uploads/2021/10/Buffaload_Favicon.svg"
   );
+});
+
+// Redirect requests for favicon.png to the external URL
+app.get("/favicon.png", (req, res) => {
+  res.redirect(
+    "https://buffaload.co.uk/wp-content/uploads/2021/10/Buffaload_Favicon.svg"
+  );
+});
+
+// Start the server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 // Export the app as the default export
