@@ -41,4 +41,10 @@ app.get("/api/vehicles", async (req, res) => {
   }
 });
 
+// Export as default
 export default app;
+
+// ALso export as lambda handler for Vercel
+export const handler = (req, res) => {
+  app(req, res);
+};
