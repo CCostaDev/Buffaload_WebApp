@@ -30,6 +30,11 @@ async function fetchVehicles() {
 
     const data = await response.json();
 
+    // Ensure data is an array
+    if (!Array.isArray(data)) {
+      throw new Error("Fetched data is not an array");
+    }
+
     // Update cache
     localStorage.setItem(cacheKey, JSON.stringify(data));
     localStorage.setItem(cacheTimestampKey, now.toString());
