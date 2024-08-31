@@ -143,30 +143,18 @@ function filterStoppedVehiclesInServices(vehicles) {
 // FILTER HGVs IN DEPOTS
 
 function filterStoppedVehiclesInDepots(vehicles) {
-  const now = Date.now();
-  //const fifteenHoursAgo = now - 15 * 60 * 60 * 1000; // 15 hours in milliseconds
-
   // List of location groups to filter out
   const includedLocationGroups = ["Buffaload"];
 
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
-    const lastUpdate = new Date(vehicle.date).getTime();
-    //const stoppedLongEnough = now - lastUpdate > stopDuration;
-    //const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
 
     const isIncludedLocationGroup =
       vehicle.locationGroupName &&
       includedLocationGroups.includes(vehicle.locationGroupName);
 
-    return (
-      isHGV &&
-      isStopped &&
-      //withinFifteenHours &&
-      isIncludedLocationGroup
-      //stoppedLongEnough
-    );
+    return isHGV && isStopped && isIncludedLocationGroup;
   });
 }
 
