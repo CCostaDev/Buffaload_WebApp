@@ -16,6 +16,7 @@ const password = process.env.API_PASSWORD;
 // Basic auth credentials
 const credentials = Buffer.from(`${username}:${password}`).toString("base64");
 
+// Function to fetch vehicle data from the API
 async function fetchVehicleData() {
   const response = await fetch(apiURL, {
     headers: {
@@ -30,6 +31,17 @@ async function fetchVehicleData() {
   return await response.json();
 }
 
+// Default route to confirm server is running
+app.get("/", (req, res) => {
+  res.send("Server is up and running!");
+});
+
+// Route to handle the favicon request to avoid 404 errors
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end(); // No content
+});
+
+// API route to fetch vehicle data
 app.get("/api/vehicles", async (req, res) => {
   try {
     const data = await fetchVehicleData();
@@ -41,10 +53,10 @@ app.get("/api/vehicles", async (req, res) => {
   }
 });
 
-// Export as default
+// Export the app as the default export
 export default app;
 
-// ALso export as lambda handler for Vercel
+// Also export as a lambda handler for Vercel (just in case)
 export const handler = (req, res) => {
   app(req, res);
 };
