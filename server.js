@@ -51,7 +51,9 @@ app.get("/api/vehicles", async (req, res) => {
 
 // Handle favicon requests to avoid 404 errors
 app.get("/favicon.ico", (req, res) => {
-  res.status(204).end();
+  res.redirect(
+    "https://buffaload.co.uk/wp-content/uploads/2021/10/Buffaload_Favicon.svg"
+  );
 });
 
 // Export the app as the default export
