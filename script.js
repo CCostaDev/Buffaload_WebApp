@@ -1,12 +1,40 @@
 const stopDuration = 45 * 60 * 1000; // 45 minutes in milliseconds
 const tipperStopDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
-const refreshInterval = 30 * 1000; // 30 seconds in milliseconds
+const refreshInterval = 120 * 1000; // 2 minutes in milliseconds
 
 async function fetchVehicles() {
+  const cacheKey = "vehicles";
+  const cacheTimestampKey = "vehicles-timestamp";
+  const cacheDuration = 120000; // 2min in milliseconds
+
   try {
-    const response = await fetch("http://localhost:3000/api/vehicles"); // Request to node.js server
+    const now = Date.now();
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
+
+    if (
+      cachedData &&
+      cachedTimestamp &&
+      now - cachedTimestamp < cacheDuration
+    ) {
+      // Use cached data if it's not expired
+      console.log("Using cached vehicle data");
+      return JSON.parse(cachedData);
+    }
+
+    // Fetch new data from the server
+    const response = await fetch("/api/vehicles"); // Update URL as needed
+    if (!response.ok) {
+      throw new Error(`Api responded with status ${response.status}`);
+    }
+
     const data = await response.json();
-    console.log("Vehicle data:", data);
+
+    // Update cache
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    localStorage.setItem(cacheTimestampKey, now.toString());
+
+    console.log("Fetched new vehicle data");
     return data;
   } catch (error) {
     console.error("Error fetching vehicle data:", error);
@@ -368,7 +396,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Set up auto-refresh every 30 seconds
+// Set up auto-refresh every 2 minutes (matches cache duration)
 setInterval(async () => {
   const vehicles = await fetchVehicles();
 
