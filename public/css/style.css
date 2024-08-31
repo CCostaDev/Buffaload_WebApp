@@ -208,3 +208,33 @@ ul.card-list {
   font-size: 14px;
   color: #555;
 }
+
+/* Services Cards */
+
+/* Amber background for 15+ minutes */
+.card-list .amber {
+  background-color: #ffbf00;
+}
+
+/* Red background for 45+ minutes */
+.card-list .red {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+/* Breathing animation for 120+ minutes */
+.card-list .breathing {
+  animation: breathing 2s infinite;
+}
+
+@keyframes breathing {
+  0% {
+    box-shadow: 0 0 10px #ff4d4d;
+  }
+  50% {
+    box-shadow: 0 0 20px #ff4d4d;
+  }
+  100% {
+    box-shadow: 0 0 10px #ff4d4d;
+  }
+}
