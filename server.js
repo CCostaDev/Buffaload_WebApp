@@ -76,7 +76,11 @@ app.get("/favicon.png", (req, res) => {
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  if (process.env.NODE_ENV === "production") {
+    console.log(`Server is running in production mode on port ${port}`);
+  } else {
+    console.log(`Server is running locally on http://localhost:${port}`);
+  }
 });
 
 // Export the app as the default export
