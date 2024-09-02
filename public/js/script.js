@@ -25,15 +25,21 @@ async function fetchVehicles() {
     // Fetch new data from the server
     const response = await fetch("/api/vehicles"); // Update URL as needed
     if (!response.ok) {
-      throw new Error(`Api responded with status ${response.status}`);
+      throw new Error(`API responded with status ${response.status}`);
     }
 
-    const data = await response.json();
+    let data = await response.json();
 
-    // Ensure data is an array
-    if (!Array.isArray(data)) {
-      throw new Error("Fetched data is not an array");
-    }
+    // Filter out vehicles without a date field
+    data = data.filter((vehicle) => vehicle.date);
+
+    // Convert all vehicle dates from UTC to local time
+    data = data.map((vehicle) => {
+      let vehicleDate = new Date(vehicle.date);
+      vehicleDate.setHours(vehicleDate.getHours() + 1); // Add 1 hour
+      vehicle.localDate = vehicleDate;
+      return vehicle;
+    });
 
     // Update cache
     localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -59,7 +65,7 @@ function filterStoppedVehicles(vehicles) {
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedLongEnough = now - lastUpdate > stopDuration;
     const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
 
@@ -86,7 +92,7 @@ function filterTippers(vehicles) {
   return vehicles.filter((vehicle) => {
     const isTippers = vehicle.assetGroupName === "Buffaload Ely Tippers";
     const isStopped = vehicle.eventType === "stopped";
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedForLongEnough = now - lastUpdate > tipperStopDuration;
 
     // List of location groups to filter out
@@ -121,7 +127,7 @@ function filterStoppedVehiclesInServices(vehicles) {
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedLongEnough = now - lastUpdate > stopDuration;
     const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
 
@@ -173,7 +179,7 @@ function displayVehicles(vehicles) {
 
   vehicles.forEach((vehicle) => {
     const now = Date.now();
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
 
     // Convert time difference to minutes, hours and days
@@ -225,7 +231,7 @@ function displayTippers(vehicles) {
 
   vehicles.forEach((vehicle) => {
     const now = Date.now();
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
 
     // Convert time difference to minutes, hours and days
@@ -278,7 +284,7 @@ function displayServices(vehicles) {
 
   vehicles.forEach((vehicle) => {
     const now = Date.now();
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
 
     // Convert time difference to minutes
@@ -339,7 +345,7 @@ function displayDepots(vehicles) {
 
   vehicles.forEach((vehicle) => {
     const now = Date.now();
-    const lastUpdate = new Date(vehicle.date).getTime();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
 
     // Convert time difference to minutes, hours and days
