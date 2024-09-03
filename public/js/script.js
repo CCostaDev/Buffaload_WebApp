@@ -164,6 +164,14 @@ function filterStoppedVehiclesInDepots(vehicles) {
   });
 }
 
+// Utility function to generate Google Maps URL
+
+function generateMapsUrl(vehicle) {
+  const latitude = vehicle.latitude;
+  const longitude = vehicle.longitude;
+  return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+}
+
 // DISPLAY HGVs
 
 function displayVehicles(vehicles) {
@@ -196,16 +204,14 @@ function displayVehicles(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
-    const latitude = vehicle.latitude;
-    const longitude = vehicle.longitude;
-    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const mapsUrl = generateMapsUrl(vehicle);
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="${mapsURl}" target="_blank">${
+    <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     vehicleList.appendChild(li);
@@ -250,16 +256,14 @@ function displayTippers(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
-    const latitude = vehicle.latitude;
-    const longitude = vehicle.longitude;
-    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const mapsUrl = generateMapsUrl(vehicle);
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="${mapsURl}" target="_blank">${
+    <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     tippersList.appendChild(li);
@@ -315,15 +319,13 @@ function displayServices(vehicles) {
       li.classList.add("amber");
     }
 
-    const latitude = vehicle.latitude;
-    const longitude = vehicle.longitude;
-    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const mapsUrl = generateMapsUrl(vehicle);
 
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="${mapsURl}" target="_blank">${
+    <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     servicesList.appendChild(li);
@@ -368,16 +370,14 @@ function displayDepots(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
-    const latitude = vehicle.latitude;
-    const longitude = vehicle.longitude;
-    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const mapsUrl = generateMapsUrl(vehicle);
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="${mapsURl}" target="_blank">${
+    <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     depotsList.appendChild(li);
