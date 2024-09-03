@@ -148,19 +148,82 @@ function filterStoppedVehiclesInServices(vehicles) {
 
 // FILTER HGVs IN DEPOTS
 
-function filterStoppedVehiclesInDepots(vehicles) {
-  // List of location groups to filter out
-  const includedLocationGroups = ["Buffaload"];
+// global variables
+let vehicles = [];
+// added filteredDepots variable for performance in case the vehicle list gets bigger
+let filteredDepots = [];
+let checkboxes = [];
+
+function applyFilters() {
+  console.log("Applying filters");
+  console.log("Vehicles:", filteredDepots); // Debug log
+
+  if (!Array.isArray(filteredDepots)) {
+    console.error("Vehicle data is not an array");
+    return;
+  }
+
+  const selectedFilters = Array.from(checkboxes)
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+  const furtherFilteredDepots = filterStoppedVehiclesInDepots(
+    filteredDepots,
+    selectedFilters
+  );
+  displayDepots(furtherFilteredDepots);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const depotPageElement = document.getElementById("depots-list");
+
+  if (depotPageElement) {
+    checkboxes = document.querySelectorAll(".filter-checkbox"); // Assign checkboxes here
+
+    try {
+      // Fetch vehicles data
+      vehicles = await fetchVehicles(); // Assign the fetched vehicles to the global vehicles variable
+
+      if (!Array.isArray(vehicles)) {
+        throw new Error("Vehicles data is not an array");
+      }
+
+      filteredDepots = filterStoppedVehiclesInDepots(vehicles);
+
+      // Initially apply the filters to show the vehicles
+      applyFilters();
+    } catch (error) {
+      console.error(
+        "Error during fetching or processing vehicles:",
+        error.message
+      );
+    }
+
+    // Add event listener to checkboxes to apply filters on change
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", applyFilters);
+    });
+  }
+});
+
+function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
+  const includedLocationGroup = "Buffaload";
 
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
+    const isInBuffaloadGroup =
+      vehicle.locationGroupName === includedLocationGroup;
 
-    const isIncludedLocationGroup =
-      vehicle.locationGroupName &&
-      includedLocationGroups.includes(vehicle.locationGroupName);
+    if (!isHGV || !isStopped || !isInBuffaloadGroup) {
+      return false;
+    }
 
-    return isHGV && isStopped && isIncludedLocationGroup;
+    const isIncludedLocationName =
+      selectedFilters.length === 0 ||
+      selectedFilters.includes(vehicle.locationName);
+
+    return isIncludedLocationName;
   });
 }
 
@@ -336,12 +399,6 @@ function displayServices(vehicles) {
 
 function displayDepots(vehicles) {
   const depotsList = document.getElementById("depots-list");
-
-  if (!depotsList) {
-    console.error("Element with id 'depots-list' not found.");
-    return;
-  }
-
   depotsList.innerHTML = "";
 
   if (vehicles.length === 0) {
