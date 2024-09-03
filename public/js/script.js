@@ -196,14 +196,16 @@ function displayVehicles(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
+    const latitude = vehicle.latitude;
+    const longitude = vehicle.longitude;
+    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      vehicle.formattedAddress
-    )}" target="_blank">${
+    <a href="${mapsURl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     vehicleList.appendChild(li);
@@ -248,14 +250,16 @@ function displayTippers(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
+    const latitude = vehicle.latitude;
+    const longitude = vehicle.longitude;
+    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      vehicle.formattedAddress
-    )}" target="_blank">${
+    <a href="${mapsURl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     tippersList.appendChild(li);
@@ -311,13 +315,15 @@ function displayServices(vehicles) {
       li.classList.add("amber");
     }
 
+    const latitude = vehicle.latitude;
+    const longitude = vehicle.longitude;
+    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      vehicle.formattedAddress
-    )}" target="_blank">${
+    <a href="${mapsURl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     servicesList.appendChild(li);
@@ -362,14 +368,16 @@ function displayDepots(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
+    const latitude = vehicle.latitude;
+    const longitude = vehicle.longitude;
+    const mapsURl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
-    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-      vehicle.formattedAddress
-    )}" target="_blank">${
+    <a href="${mapsURl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
     depotsList.appendChild(li);
