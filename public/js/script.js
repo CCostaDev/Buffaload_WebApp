@@ -116,13 +116,7 @@ function filterStoppedVehiclesInServices(vehicles) {
   const fifteenHoursAgo = now - 15 * 60 * 60 * 1000; // 15 hours in milliseconds
 
   // List of location groups to filter out
-  const includedLocationGroups = [
-    "Gas Stations",
-    "Fuel Station",
-    "Parking",
-    "Service",
-    "Services and Truckstops",
-  ];
+  const includedLocationGroups = ["Gas Stations", "Services and Truckstops"];
 
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
