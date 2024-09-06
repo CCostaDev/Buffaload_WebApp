@@ -91,9 +91,10 @@ function filterTippers(vehicles) {
 
   return vehicles.filter((vehicle) => {
     const isTippers = vehicle.assetGroupName === "Buffaload Ely Tippers";
-    const isStopped = vehicle.eventType === "stopped";
+    const isStopped =
+      vehicle.eventType === "stopped" || vehicle.eventType === "idling";
     const lastUpdate = new Date(vehicle.localDate).getTime();
-    const stoppedForLongEnough = now - lastUpdate > tipperStopDuration;
+    const stoppedTime = now - lastUpdate;
 
     // List of location groups to filter out
     const excludedLocationGroups = ["Buffaload", "Maintenance"];
@@ -103,9 +104,7 @@ function filterTippers(vehicles) {
       vehicle.locationGroupName &&
       excludedLocationGroups.includes(vehicle.locationGroupName);
 
-    return (
-      isTippers && isStopped && stoppedForLongEnough && !isExcludedLocationGroup
-    );
+    return isTippers && isStopped && !isExcludedLocationGroup && stoppedTime;
   });
 }
 
