@@ -253,3 +253,17 @@ ul.card-list {
     box-shadow: 0 0 10px #ff4d4d;
   }
 }
+
+/* Tippers Cards */
+
+.card-list .pastel-green {
+  background-color: #77dd77; /* Light green for driving */
+}
+
+.card-list .yellow {
+  background-color: #ffbf00; /* Yellow for stopped/idling */
+}
+
+.card-list .red {
+  background-color: #ff4d4d; /* Red for stopped/idling over 15 minutes */
+}
