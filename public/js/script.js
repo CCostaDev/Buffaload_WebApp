@@ -298,16 +298,14 @@ function displayTippers(vehicles) {
     const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
 
-    // Convert time difference to minutes, hours and days
-    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
-    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
-    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    // Convert time difference to minutes
+    const minutes = Math.floor(timeDifference / (1000 * 60));
 
     let timeSinceUpdate = "";
-    if (days > 0) {
-      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
-    } else if (hours > 0) {
-      timeSinceUpdate = `${hours}h ${minutes}m`;
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      timeSinceUpdate = `${hours}h ${remainingMinutes}m`;
     } else {
       timeSinceUpdate = `${minutes}m`;
     }
@@ -315,7 +313,7 @@ function displayTippers(vehicles) {
     const li = document.createElement("li");
     li.classList.add("card");
 
-    // Classes based on time difference
+    // Classes based on event type and time difference
     if (vehicle.eventType === "driving") {
       li.classList.add("pastel-green");
     } else if (
