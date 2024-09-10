@@ -317,7 +317,9 @@ function displayTippers(vehicles) {
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
-    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
+    <div class="card-content">${
+      vehicle.eventType
+    }: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
