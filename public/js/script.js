@@ -220,6 +220,37 @@ function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
   });
 }
 
+// FILTER MAINTENANCE VEHICLES
+
+function filterMaintenance(vehicles) {
+  const now = Date.now();
+
+  // List of location groups to filter
+  const includedLocationGroups = ["Maintenance"];
+
+  return vehicles
+    .filter((vehicle) => {
+      const isHGV = vehicle.assetType === "HGV";
+      const lastUpdate = new Date(vehicle.localDate).getTime();
+
+      // Check if vehicle's location group is in the included list
+      const isIncludedLocationGroup =
+        vehicle.locationGroupName &&
+        includedLocationGroups.includes(vehicle.locationGroupName);
+
+      return isHGV && isIncludedLocationGroup;
+    })
+    .map((vehicle) => {
+      const lastUpdate = new Date(vehicle.localDate).getTime();
+      const timeInMaintenance = now - lastUpdate;
+
+      return {
+        ...vehicle,
+        timeInMaintenance,
+      };
+    });
+}
+
 // Utility function to generate Google Maps URL
 
 function generateMapsUrl(vehicle) {
@@ -451,6 +482,52 @@ function displayDepots(vehicles) {
   });
 }
 
+// DISPLAY MAINTENANCE
+
+function displayMaintenance(vehicles) {
+  const maintenanceList = document.getElementById("maintenance-list");
+  maintenanceList.innerHTML = "";
+
+  if (vehicles.length === 0) {
+    const noVehiclesMessage = document.createElement("li");
+    noVehiclesMessage.textContent = "No vehicles in maintenance.";
+    depotsList.appendChild(noVehiclesMessage);
+    return;
+  }
+
+  vehicles.forEach((vehicle) => {
+    const now = Date.now();
+    const lastUpdate = new Date(vehicle.localDate).getTime();
+    const timeDifference = now - lastUpdate;
+
+    // Convert time difference to minutes, hours and days
+    const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60)) % 24;
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    let timeSinceUpdate = "";
+    if (days > 0) {
+      timeSinceUpdate = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      timeSinceUpdate = `${hours}h ${minutes}m`;
+    } else {
+      timeSinceUpdate = `${minutes}m`;
+    }
+
+    const mapsUrl = generateMapsUrl(vehicle);
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
+    </br>Location:</br>
+    <a href="${mapsUrl}" target="_blank">${
+      vehicle.locationName || vehicle.formattedAddress
+    }</a></div>`;
+    maintenanceList.appendChild(li);
+  });
+}
+
 // EVENT LISTENER
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -476,6 +553,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stoppedDepots = filterStoppedVehiclesInDepots(vehicles);
     console.log("Stopped in Depots:", stoppedDepots);
     displayDepots(stoppedDepots);
+  } else if (document.getElementById("maintenance-list")) {
+    // Logic for Maintenance page
+    const stoppedMaintenance = filterMaintenance(vehicles);
+    console.log("Stopped in Maintenance:", stoppedMaintenance);
+    displayMaintenance(stoppedMaintenance);
   }
 });
 
@@ -505,6 +587,12 @@ setInterval(async () => {
     const stoppedDepots = filterStoppedVehiclesInDepots(vehicles);
     console.log("Stopped in Depots:", stoppedDepots);
     displayDepots(stoppedDepots);
+  }
+
+  if (document.getElementById("maintenance-list")) {
+    const stoppedMaintenance = filterMaintenance(vehicles);
+    console.log("Stopped Maintenance:", stoppedMaintenance);
+    displayMaintenance(stoppedMaintenance);
   }
 }, refreshInterval);
 
