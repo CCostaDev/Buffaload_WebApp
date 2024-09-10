@@ -91,8 +91,6 @@ function filterTippers(vehicles) {
 
   return vehicles.filter((vehicle) => {
     const isTippers = vehicle.assetGroupName === "Buffaload Ely Tippers";
-    const isStopped =
-      vehicle.eventType === "stopped" || vehicle.eventType === "idling";
     const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedTime = now - lastUpdate;
 
@@ -104,7 +102,7 @@ function filterTippers(vehicles) {
       vehicle.locationGroupName &&
       excludedLocationGroups.includes(vehicle.locationGroupName);
 
-    return isTippers && isStopped && !isExcludedLocationGroup && stoppedTime;
+    return isTippers && !isExcludedLocationGroup && stoppedTime;
   });
 }
 
@@ -290,7 +288,7 @@ function displayTippers(vehicles) {
 
   if (vehicles.length === 0) {
     const noVehiclesMessage = document.createElement("li");
-    noVehiclesMessage.textContent = "No Tippers currently stopped.";
+    noVehiclesMessage.textContent = "No Tippers available.";
     tippersList.appendChild(noVehiclesMessage);
     return;
   }
@@ -314,9 +312,26 @@ function displayTippers(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
+    const li = document.createElement("li");
+    li.classList.add("card");
+
+    // Classes based on time difference
+    if (vehicle.eventType === "driving") {
+      li.classList.add("pastel-green");
+    } else if (
+      (vehicle.eventType === "stopped" || vehicle.eventType === "idling") &&
+      minutes <= 15
+    ) {
+      li.classList.add("yellow");
+    } else if (
+      (vehicle.eventType === "stopped" || vehicle.eventType === "idling") &&
+      minutes > 15
+    ) {
+      li.classList.add("red");
+    }
+
     const mapsUrl = generateMapsUrl(vehicle);
 
-    const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetRegistration}</div> 
     <div class="card-content">${
