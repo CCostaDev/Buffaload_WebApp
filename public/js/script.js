@@ -117,26 +117,28 @@ function filterStoppedVehiclesInServices(vehicles) {
   // List of location groups to filter out
   const includedLocationGroups = ["Gas Stations", "Services and Truckstops"];
 
-  return vehicles.filter((vehicle) => {
-    const isHGV = vehicle.assetType === "HGV";
-    const isStopped = vehicle.eventType === "stopped";
-    const lastUpdate = new Date(vehicle.localDate).getTime();
-    const stoppedLongEnough = now - lastUpdate > stopDuration;
-    const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
+  return vehicles
+    .filter((vehicle) => {
+      const isHGV = vehicle.assetType === "HGV";
+      const lastUpdate = new Date(vehicle.localDate).getTime();
+      const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
 
-    // Check if vehicle's location group is in the included list
-    const isIncludedLocationGroup =
-      vehicle.locationGroupName &&
-      includedLocationGroups.includes(vehicle.locationGroupName);
+      // Check if vehicle's location group is in the included list
+      const isIncludedLocationGroup =
+        vehicle.locationGroupName &&
+        includedLocationGroups.includes(vehicle.locationGroupName);
 
-    return (
-      isHGV &&
-      isStopped &&
-      withinFifteenHours &&
-      isIncludedLocationGroup &&
-      stoppedLongEnough
-    );
-  });
+      return isHGV && withinFifteenHours && isIncludedLocationGroup;
+    })
+    .map((vehicle) => {
+      const lastUpdate = new Date(vehicle.localDate).getTime();
+      const timeInService = now - lastUpdate;
+
+      return {
+        ...vehicle,
+        timeInService,
+      };
+    });
 }
 
 // FILTER HGVs IN DEPOTS
