@@ -95,14 +95,14 @@ function filterTippers(vehicles) {
     const stoppedTime = now - lastUpdate;
 
     // List of location groups to filter out
-    const excludedLocationGroups = ["Buffaload", "Maintenance"];
+    // const excludedLocationGroups = ["Buffaload", "Maintenance"];
 
     // Check if vehicle's location group is in the excluded list
-    const isExcludedLocationGroup =
-      vehicle.locationGroupName &&
-      excludedLocationGroups.includes(vehicle.locationGroupName);
+    // const isExcludedLocationGroup =
+    //   vehicle.locationGroupName &&
+    //   excludedLocationGroups.includes(vehicle.locationGroupName);
 
-    return isTippers && !isExcludedLocationGroup && stoppedTime;
+    return isTippers && stoppedTime;
   });
 }
 
@@ -602,4 +602,20 @@ function toggleMenu() {
   const icon = document.querySelector(".hamburger-icon");
   menu.classList.toggle("open");
   icon.classList.toggle("open");
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").then(
+      (registration) => {
+        console.log(
+          "Service Worker registered with scope:",
+          registration.scope
+        );
+      },
+      (err) => {
+        console.log("Service Worker registration failed:", err);
+      }
+    );
+  });
 }
