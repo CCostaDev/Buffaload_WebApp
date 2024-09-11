@@ -1,5 +1,4 @@
 const stopDuration = 45 * 60 * 1000; // 45 minutes in milliseconds
-const tipperStopDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
 const refreshInterval = 120 * 1000; // 2 minutes in milliseconds
 
 async function fetchVehicles() {
@@ -139,7 +138,7 @@ function filterStoppedVehiclesInServices(vehicles) {
     });
 }
 
-// FILTER HGVs IN DEPOTS
+// FILTERS OF HGVs IN DEPOTS
 
 // global variables
 let vehicles = [];
@@ -199,16 +198,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// FILTER HGV IN DEPOTS
+
 function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
   const includedLocationGroup = "Buffaload";
 
   return vehicles.filter((vehicle) => {
     const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
+    const excludeGroup = vehicle.assetGroupName === "Buffaload Ely Tippers";
     const isInBuffaloadGroup =
       vehicle.locationGroupName === includedLocationGroup;
 
-    if (!isHGV || !isStopped || !isInBuffaloadGroup) {
+    if (!isHGV || !isStopped || !isInBuffaloadGroup || excludeGroup) {
       return false;
     }
 
