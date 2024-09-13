@@ -628,17 +628,16 @@ if ("serviceWorker" in navigator) {
           registration.scope
         );
 
-        // Check for updates to the service worker
+        // Listen for updates to the Service Worker
         registration.onupdatefound = () => {
           const installingWorker = registration.installing;
           installingWorker.onstatechange = () => {
             if (installingWorker.state === "installed") {
               if (navigator.serviceWorker.controller) {
-                // New update is available, reload the page
-                console.log("New content is available; refreshing...");
-                window.location.reload();
+                // A new service worker is installed and controlling the page, reload automatically
+                console.log("New content available, reloading...");
+                window.location.reload(); // Automatically reload the page
               } else {
-                // No previous service worker, content is cached for offline use
                 console.log("Content is cached for offline use.");
               }
             }
