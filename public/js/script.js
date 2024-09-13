@@ -634,7 +634,6 @@ if ("serviceWorker" in navigator) {
           installingWorker.onstatechange = () => {
             if (installingWorker.state === "installed") {
               if (navigator.serviceWorker.controller) {
-                // A new service worker is installed and controlling the page, reload automatically
                 console.log("New content available, reloading...");
                 window.location.reload(); // Automatically reload the page
               } else {
@@ -642,6 +641,14 @@ if ("serviceWorker" in navigator) {
               }
             }
           };
+        };
+
+        // Force reload when the new service worker takes control
+        let refreshing;
+        navigator.serviceWorker.oncontrollerchange = () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
         };
       })
       .catch((error) => {

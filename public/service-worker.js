@@ -13,6 +13,7 @@ const urlsToCache = [
 
 // Install Service Worker and Cache Files
 self.addEventListener("install", (event) => {
+  console.log("Installing new service worker...");
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log("Opened cache");
@@ -24,11 +25,13 @@ self.addEventListener("install", (event) => {
 
 // Activate the Service Worker and Remove Old Caches
 self.addEventListener("activate", (event) => {
+  console.log("Service worker activating...");
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log(`Deleting old cache: ${cacheName}`);
             return caches.delete(cacheName); // Delete old caches
           }
         })
@@ -43,11 +46,20 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, response.clone());
-          return response;
+        // Only cache successful responses (status 200)
+        if (!response || response.status !== 200 || response.type !== "basic") {
+          return response; // Return the network response if not cacheable
+        }
+
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone); // Cache the response
         });
+
+        return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => {
+        return caches.match(event.request); // Fallback to cache if network fails
+      })
   );
 });
