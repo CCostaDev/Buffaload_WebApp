@@ -1,5 +1,6 @@
-const stopDuration = 45 * 60 * 1000; // 45 minutes in milliseconds
-const refreshInterval = 120 * 1000; // 2 minutes in milliseconds
+const stopDuration = 60 * 60 * 1000; // 60 minutes in milliseconds
+const stopGracePeriod = 5 * 60 * 1000; // 5 minutes in milliseconds
+const refreshInterval = 2 * 60 * 1000; // 2 minutes in milliseconds
 
 async function fetchVehicles() {
   const cacheKey = "vehicles";
@@ -73,12 +74,16 @@ function filterStoppedVehicles(vehicles) {
       vehicle.locationGroupName &&
       excludedLocationGroups.includes(vehicle.locationGroupName);
 
+    const hasLocationName =
+      vehicle.locationName && vehicle.locationName.trim() !== "";
+
     return (
       isHGV &&
       isStopped &&
       withinFifteenHours &&
       !isExcludedLocationGroup &&
-      stoppedLongEnough
+      stoppedLongEnough &&
+      hasLocationName
     );
   });
 }
@@ -92,14 +97,6 @@ function filterTippers(vehicles) {
     const isTippers = vehicle.assetGroupName === "Buffaload Ely Tippers";
     const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedTime = now - lastUpdate;
-
-    // List of location groups to filter out
-    // const excludedLocationGroups = ["Buffaload", "Maintenance"];
-
-    // Check if vehicle's location group is in the excluded list
-    // const isExcludedLocationGroup =
-    //   vehicle.locationGroupName &&
-    //   excludedLocationGroups.includes(vehicle.locationGroupName);
 
     return isTippers && stoppedTime;
   });
@@ -117,23 +114,39 @@ function filterStoppedVehiclesInServices(vehicles) {
   return vehicles
     .filter((vehicle) => {
       const isHGV = vehicle.assetType === "HGV";
+      const isStopped =
+        vehicle.eventType === "stopped" || vehicle.eventType === "idling";
       const lastUpdate = new Date(vehicle.localDate).getTime();
+      const stoppedLongEnough = now - lastUpdate > stopGracePeriod;
       const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
 
-      // Check if vehicle's location group is in the included list
+      // Check if vehicle's location group is in the included list or if location name is missing
+      const hasLocationName =
+        vehicle.locationName && vehicle.locationName.trim() !== "";
       const isIncludedLocationGroup =
         vehicle.locationGroupName &&
         includedLocationGroups.includes(vehicle.locationGroupName);
 
-      return isHGV && withinFifteenHours && isIncludedLocationGroup;
+      return (
+        isHGV &&
+        isStopped &&
+        stoppedLongEnough &&
+        withinFifteenHours &&
+        (isIncludedLocationGroup || !hasLocationName)
+      );
     })
     .map((vehicle) => {
       const lastUpdate = new Date(vehicle.localDate).getTime();
       const timeInService = now - lastUpdate;
 
+      const displayName = vehicle.locationName
+        ? vehicle.locationName
+        : vehicle.formattedAddress;
+
       return {
         ...vehicle,
         timeInService,
+        displayName,
       };
     });
 }
@@ -204,13 +217,12 @@ function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
   const includedLocationGroup = "Buffaload";
 
   return vehicles.filter((vehicle) => {
-    const isHGV = vehicle.assetType === "HGV";
     const isStopped = vehicle.eventType === "stopped";
     const excludeGroup = vehicle.assetGroupName === "Buffaload Ely Tippers";
     const isInBuffaloadGroup =
       vehicle.locationGroupName === includedLocationGroup;
 
-    if (!isHGV || !isStopped || !isInBuffaloadGroup || excludeGroup) {
+    if (!isStopped || !isInBuffaloadGroup || !excludeGroup) {
       return false;
     }
 
@@ -297,7 +309,7 @@ function displayVehicles(vehicles) {
 
     const li = document.createElement("li");
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-title">${vehicle.assetName}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
@@ -364,7 +376,7 @@ function displayTippers(vehicles) {
     const mapsUrl = generateMapsUrl(vehicle);
 
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-title">${vehicle.assetName}</div> 
     <div class="card-content">${
       vehicle.eventType
     }: </br><b>${timeSinceUpdate}</b></br>
@@ -428,7 +440,7 @@ function displayServices(vehicles) {
     const mapsUrl = generateMapsUrl(vehicle);
 
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-title">${vehicle.assetName}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
@@ -474,7 +486,7 @@ function displayDepots(vehicles) {
 
     const li = document.createElement("li");
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-title">${vehicle.assetName}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
@@ -520,7 +532,7 @@ function displayMaintenance(vehicles) {
 
     const li = document.createElement("li");
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetRegistration}</div> 
+    <div class="card-title">${vehicle.assetName}</div> 
     <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
