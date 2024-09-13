@@ -218,7 +218,7 @@ function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
 
   return vehicles.filter((vehicle) => {
     const isStopped = vehicle.eventType === "stopped";
-    const excludeGroup = vehicle.assetGroupName === "Buffaload Ely Tippers";
+    const excludeGroup = vehicle.assetGroupName !== "Buffaload Ely Tippers";
     const isInBuffaloadGroup =
       vehicle.locationGroupName === includedLocationGroup;
 
@@ -626,6 +626,25 @@ if ("serviceWorker" in navigator) {
           "Service Worker registered with scope:",
           registration.scope
         );
+
+        // Check for updates to the service worker
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === "installed") {
+              if (navigator.serviceWorker.controller) {
+                // New update is available, notify the user or reload the page
+                console.log("New content is available; please refresh.");
+                if (confirm("New version available! Reload to update?")) {
+                  window.location.reload();
+                }
+              } else {
+                // First install of the service worker, no need to force reload
+                console.log("Content is cached for offline use.");
+              }
+            }
+          };
+        };
       },
       (err) => {
         console.log("Service Worker registration failed:", err);
