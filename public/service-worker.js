@@ -1,4 +1,4 @@
-const CACHE_NAME = "my-app-cache-v1.0.3";
+const CACHE_NAME = "my-app-cache-v1.0.4"; // Increment this on every new deployment
 const urlsToCache = [
   "/",
   "/index.html",
@@ -11,51 +11,43 @@ const urlsToCache = [
   "/css/style.css",
 ];
 
-// Install Service Worker
+// Install Service Worker and Cache Files
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log("Opened cache");
-      return cache.addAll(urlsToCache); // Cache the specified files
+      return cache.addAll(urlsToCache);
     })
   );
-  self.skipWaiting(); // Forces new service worker to take control immediately
+  self.skipWaiting(); // Force the new service worker to take over immediately
 });
 
+// Activate the Service Worker and Remove Old Caches
 self.addEventListener("activate", (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName); // Delete old caches
           }
         })
       );
     })
   );
-  return self.clients.claim();
+  return self.clients.claim(); // Take control of all open clients (tabs)
 });
 
-// Cache and return requests
+// Network First Fetch Strategy
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone and store the response in cache
-        if (event.request.url.indexOf("http") === 0) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return response; // No cache hit, fetch from network
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, response.clone());
+          return response;
+        });
       })
-      .catch(() => {
-        // If network fetch fails, try to get it from cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

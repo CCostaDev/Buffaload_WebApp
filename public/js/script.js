@@ -620,8 +620,9 @@ function toggleMenu() {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js").then(
-      (registration) => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
         console.log(
           "Service Worker registered with scope:",
           registration.scope
@@ -633,22 +634,19 @@ if ("serviceWorker" in navigator) {
           installingWorker.onstatechange = () => {
             if (installingWorker.state === "installed") {
               if (navigator.serviceWorker.controller) {
-                // New update is available, notify the user or reload the page
-                console.log("New content is available; please refresh.");
-                if (confirm("New version available! Reload to update?")) {
-                  window.location.reload();
-                }
+                // New update is available, reload the page
+                console.log("New content is available; refreshing...");
+                window.location.reload();
               } else {
-                // First install of the service worker, no need to force reload
+                // No previous service worker, content is cached for offline use
                 console.log("Content is cached for offline use.");
               }
             }
           };
         };
-      },
-      (err) => {
-        console.log("Service Worker registration failed:", err);
-      }
-    );
+      })
+      .catch((error) => {
+        console.log("Service Worker registration failed:", error);
+      });
   });
 }
