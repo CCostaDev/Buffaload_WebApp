@@ -226,14 +226,9 @@ ul.card-list {
 
 /* Depots page filter section */
 
-.container {
-  display: flex;
-  justify-content: space-between;
-}
-
 #filter-options {
   margin-left: 20px;
-  max-width: 200px;
+  max-width: 300px;
   padding: 10px;
   border-radius: 8px;
 }
