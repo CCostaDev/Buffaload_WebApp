@@ -1,4 +1,4 @@
-const CACHE_NAME = "my-app-cache-v1.0.7"; // Increment this on every new deployment
+const CACHE_NAME = "my-app-cache-v1.0.8"; // Increment this on every new deployment
 const urlsToCache = [
   "/",
   "/index.html",
