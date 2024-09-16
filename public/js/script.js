@@ -1,4 +1,4 @@
-const stopDuration = 60 * 60 * 1000; // 60 minutes in milliseconds
+const stopDuration = 1.5 * 60 * 60 * 1000; // 1 hour 30 minutes in milliseconds
 const stopGracePeriod = 5 * 60 * 1000; // 5 minutes in milliseconds
 const refreshInterval = 2 * 60 * 1000; // 2 minutes in milliseconds
 
@@ -127,11 +127,18 @@ function filterStoppedVehiclesInServices(vehicles) {
         vehicle.locationGroupName &&
         includedLocationGroups.includes(vehicle.locationGroupName);
 
+      const isNotTipper = vehicle.assetGroupName !== "Buffaload Ely Tippers";
+
+      const hasValidDriverName =
+        vehicle.driverName && vehicle.driverName.trim() !== "";
+
       return (
         isHGV &&
         isStopped &&
         stoppedLongEnough &&
         withinFifteenHours &&
+        isNotTipper &&
+        hasValidDriverName &&
         (isIncludedLocationGroup || !hasLocationName)
       );
     })
