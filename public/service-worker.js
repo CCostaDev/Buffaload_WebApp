@@ -1,15 +1,5 @@
-const CACHE_NAME = "my-app-cache-v1.0.9"; // Increment this on every new deployment
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/hgv.html",
-  "/tippers.html",
-  "/services.html",
-  "/depots.html",
-  "/maintenance.html",
-  "/js/script.js",
-  "/css/style.css",
-];
+const CACHE_NAME = "my-app-cache-v1.0.10"; // Increment this on every new deployment
+const urlsToCache = ["/", "/js/script.js", "/css/style.css"];
 
 // Install Service Worker and Cache Files
 self.addEventListener("install", (event) => {
@@ -26,19 +16,23 @@ self.addEventListener("install", (event) => {
 // Activate the Service Worker and Remove Old Caches
 self.addEventListener("activate", (event) => {
   console.log("Service worker activating...");
+
+  const cacheWhitelist = [CACHE_NAME];
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log(`Deleting old cache: ${cacheName}`);
+          if (cacheWhitelist.includes(cacheName)) {
+            console.log(`[Service worker] Deleting old cache: ${cacheName}`);
             return caches.delete(cacheName); // Delete old caches
           }
         })
       );
     })
   );
-  return self.clients.claim(); // Take control of all open clients (tabs)
+
+  self.clients.claim(); // Take control of all open clients (tabs)
 });
 
 // Network First Fetch Strategy
