@@ -2,6 +2,8 @@ const stopDuration = 1.5 * 60 * 60 * 1000; // 1 hour 30 minutes in milliseconds
 const stopGracePeriod = 5 * 60 * 1000; // 5 minutes in milliseconds
 const refreshInterval = 2 * 60 * 1000; // 2 minutes in milliseconds
 
+let vehicles = [];
+
 async function fetchVehicles() {
   const cacheKey = "vehicles";
   const cacheTimestampKey = "vehicles-timestamp";
@@ -19,7 +21,13 @@ async function fetchVehicles() {
     ) {
       // Use cached data if it's not expired
       console.log("Using cached vehicle data");
-      return JSON.parse(cachedData);
+      const data = JSON.parse(cachedData).map((vehicle) => {
+        vehicle.localDate = new Date(vehicle.localDate);
+        return vehicle;
+      });
+
+      applyFilter();
+      return data;
     }
 
     // Fetch new data from the server
@@ -46,6 +54,7 @@ async function fetchVehicles() {
     localStorage.setItem(cacheTimestampKey, now.toString());
 
     console.log("Fetched new vehicle data");
+    applyFilter();
     return data;
   } catch (error) {
     console.error("Error fetching vehicle data:", error);
@@ -94,7 +103,7 @@ function filterTippers(vehicles) {
   const now = Date.now();
 
   return vehicles.filter((vehicle) => {
-    const isTippers = vehicle.assetGroupName === "Buffaload Ely Tippers";
+    const isTippers = vehicle.assetGroupName === "Ely Tipper Operation";
     const lastUpdate = new Date(vehicle.localDate).getTime();
     const stoppedTime = now - lastUpdate;
 
@@ -114,8 +123,6 @@ function filterStoppedVehiclesInServices(vehicles) {
   return vehicles
     .filter((vehicle) => {
       const isHGV = vehicle.assetType === "HGV";
-      const isStopped =
-        vehicle.eventType === "stopped" || vehicle.eventType === "idling";
       const lastUpdate = new Date(vehicle.localDate).getTime();
       const stoppedLongEnough = now - lastUpdate > stopGracePeriod;
       const withinFifteenHours = lastUpdate >= fifteenHoursAgo;
@@ -127,24 +134,30 @@ function filterStoppedVehiclesInServices(vehicles) {
         vehicle.locationGroupName &&
         includedLocationGroups.includes(vehicle.locationGroupName);
 
-      const isNotTipper = vehicle.assetGroupName !== "Buffaload Ely Tippers";
+      const isNotTipper = vehicle.assetGroupName !== "Ely Tipper Operation";
 
       const hasValidDriverName =
         vehicle.driverName && vehicle.driverName.trim() !== "";
 
+      const shouldIncludeBasedOnEvent =
+        isIncludedLocationGroup ||
+        vehicle.eventType === "stopped" ||
+        vehicle.eventType === "idling";
+
       return (
         isHGV &&
-        isStopped &&
-        stoppedLongEnough &&
+        (isIncludedLocationGroup ||
+          (shouldIncludeBasedOnEvent &&
+            stoppedLongEnough &&
+            !hasLocationName)) &&
         withinFifteenHours &&
         isNotTipper &&
-        hasValidDriverName &&
-        (isIncludedLocationGroup || !hasLocationName)
+        hasValidDriverName
       );
     })
     .map((vehicle) => {
       const lastUpdate = new Date(vehicle.localDate).getTime();
-      const timeInService = now - lastUpdate;
+      const timeInService = Date.now() - lastUpdate;
 
       const displayName = vehicle.locationName
         ? vehicle.locationName
@@ -158,10 +171,172 @@ function filterStoppedVehiclesInServices(vehicles) {
     });
 }
 
-// FILTERS OF HGVs IN DEPOTS
+let nightOutVehicles = [];
 
-// global variables
-let vehicles = [];
+// NIGHT-OUT LOGIC
+
+function assignToNightOut(assetName) {
+  const vehicleCard = document.getElementById(`vehicle-${assetName}`);
+  nightOutVehicles = JSON.parse(localStorage.getItem("nightOutVehicles")) || [];
+
+  if (vehicleCard) {
+    if (vehicleCard.classList.contains("night-out")) {
+      vehicleCard.classList.remove("night-out");
+      // Remove the vehicle from localStorage
+      nightOutVehicles = nightOutVehicles.filter((name) => name !== assetName);
+    } else {
+      vehicleCard.classList.add("night-out");
+      // Add the vehicle to localStorage
+      nightOutVehicles.push(assetName);
+    }
+    localStorage.setItem("nightOutVehicles", JSON.stringify(nightOutVehicles));
+
+    applyFilter();
+  }
+}
+
+// Function to remove a vehicle from "Night-out" if its eventType changes
+function checkEventTypeChange(vehicle) {
+  const vehicleCard = document.getElementById(`vehicle-${vehicle.assetName}`);
+  let nightOutVehicles =
+    JSON.parse(localStorage.getItem("nightOutVehicles")) || [];
+
+  if (
+    vehicle.eventType !== "stopped" && // If the vehicle is no longer stopped
+    nightOutVehicles.includes(vehicle.assetName) // And it was marked as night-out
+  ) {
+    // Remove the vehicle from night-out list
+    nightOutVehicles = nightOutVehicles.filter(
+      (name) => name !== vehicle.assetName
+    );
+    localStorage.setItem("nightOutVehicles", JSON.stringify(nightOutVehicles));
+
+    // Remove the night-out class
+    if (vehicleCard) {
+      vehicleCard.classList.remove("night-out");
+    }
+  }
+}
+
+//Update the vehicle display based on the filter
+function updateVehicleDisplay(assetName, filterType) {
+  const vehicleCard = document.getElementById(`vehicle-${assetName}`);
+  if (vehicleCard) {
+    if (filterType === "Night-Out") {
+      vehicleCard.classList.add("night-out");
+      vehicleCard.classList.remove("red", "amber", "breathing"); // Remove time-based classes
+    } else {
+      vehicleCard.classList.remove("night-out");
+    }
+  }
+}
+
+//Call this function whenever the eventType changes
+function monitorVehicleChanges(vehicles) {
+  vehicles.forEach((vehicle) => checkEventTypeChange(vehicle));
+}
+
+// FILTERS OF NIGHT-OUT/SERVICES
+
+function applyFilter() {
+  const filterCheckbox = document.querySelector(".filter-checkbox");
+
+  // Only run the filter logic if the checkbox exists
+  if (!filterCheckbox) {
+    console.log("No filter checkbox found on this page.");
+    return; // Exit the function if there's no checkbox
+  }
+
+  const nightOutFilter = filterCheckbox.checked;
+
+  // Get all vehicle cards
+  const vehicleCards = document.querySelectorAll(".card");
+
+  vehicleCards.forEach((card) => {
+    // If the Night-Out filter is checked, show only vehicles with the "night-out" class
+    if (nightOutFilter) {
+      if (card.classList.contains("night-out")) {
+        card.style.display = ""; // Show the card if it has the "night-out" class
+      } else {
+        card.style.display = "none"; // Hide the card if it doesn't have the "night-out" class
+      }
+    } else {
+      // If the Night-Out filter is not checked, show all vehicles except "night-out"
+      if (card.classList.contains("night-out")) {
+        card.style.display = "none"; // Hide night-out vehicles
+      } else {
+        card.style.display = ""; // Show the rest
+      }
+    }
+  });
+}
+
+function filterVehiclesByLocation(vehicles, nightOutFilter) {
+  // If Night-Out filter is selected, show only Night-Out vehicles
+  if (nightOutFilter) {
+    return vehicles.filter((vehicle) =>
+      nightOutVehicles.includes(vehicle.assetName)
+    );
+  }
+
+  // Otherwise, show all vehicles except Night-Out ones
+  return vehicles.filter(
+    (vehicle) => !nightOutVehicles.includes(vehicle.assetName)
+  );
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Fetch vehicles data
+  const vehicles = await fetchVehicles();
+
+  // Restore "night-out" classes from localStorage
+  nightOutVehicles = JSON.parse(localStorage.getItem("nightOutVehicles")) || [];
+
+  vehicles.forEach((vehicle) => {
+    if (nightOutVehicles.includes(vehicle.assetName)) {
+      const vehicleCard = document.getElementById(
+        `vehicle-${vehicle.assetName}`
+      );
+      if (vehicleCard) {
+        vehicleCard.classList.add("night-out"); // Restore the class
+      }
+    }
+  });
+
+  // Display services or other initial logic
+  if (document.getElementById("services-list")) {
+    const stoppedServices = filterStoppedVehiclesInServices(vehicles);
+    displayServices(stoppedServices);
+
+    vehicles.forEach((vehicle) => checkEventTypeChange(vehicle));
+
+    const filterCheckbox = document.querySelector(".filter-checkbox");
+    if (filterCheckbox) {
+      filterCheckbox.checked = false;
+      applyFilter();
+
+      filterCheckbox.addEventListener("change", applyFilter);
+    }
+  }
+
+  // Logic for vehicle listings, depots, and maintenance
+  if (document.getElementById("vehicle-list")) {
+    const stoppedVehicles = filterStoppedVehicles(vehicles);
+    displayVehicles(stoppedVehicles);
+  }
+
+  if (document.getElementById("depots-list")) {
+    const stoppedDepots = filterStoppedVehiclesInDepots(vehicles);
+    displayDepots(stoppedDepots);
+  }
+
+  if (document.getElementById("maintenance-list")) {
+    const stoppedMaintenance = filterMaintenance(vehicles);
+    displayMaintenance(stoppedMaintenance);
+  }
+});
+
+// FILTERS OF HGVs IN DEPOTS
 // added filteredDepots variable for performance in case the vehicle list gets bigger
 let filteredDepots = [];
 let checkboxes = [];
@@ -225,7 +400,7 @@ function filterStoppedVehiclesInDepots(vehicles, selectedFilters = []) {
 
   return vehicles.filter((vehicle) => {
     const isStopped = vehicle.eventType === "stopped";
-    const excludeGroup = vehicle.assetGroupName !== "Buffaload Ely Tippers";
+    const excludeGroup = vehicle.assetGroupName !== "Ely Tipper Operation";
     const isInBuffaloadGroup =
       vehicle.locationGroupName === includedLocationGroup;
 
@@ -399,12 +574,6 @@ function displayTippers(vehicles) {
 
 function displayServices(vehicles) {
   const servicesList = document.getElementById("services-list");
-
-  if (!servicesList) {
-    console.error("Element with id 'services-list' not found.");
-    return;
-  }
-
   servicesList.innerHTML = "";
 
   if (vehicles.length === 0) {
@@ -434,6 +603,12 @@ function displayServices(vehicles) {
 
     const li = document.createElement("li");
     li.classList.add("card");
+    li.setAttribute("id", `vehicle-${vehicle.assetName}`);
+
+    // Check if the vehicle is part of Night-Out and apply the class if necessary
+    if (nightOutVehicles.includes(vehicle.assetName)) {
+      li.classList.add("night-out");
+    }
 
     // Classes based on time difference
     if (minutes >= 120) {
@@ -447,12 +622,17 @@ function displayServices(vehicles) {
     const mapsUrl = generateMapsUrl(vehicle);
 
     li.innerHTML = `
-    <div class="card-title">${vehicle.assetName}</div> 
-    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
-    </br>Location:</br>
-    <a href="${mapsUrl}" target="_blank">${
+      <div class="card-title">${vehicle.assetName}</div> 
+      <div class="card-content">
+        Last Update: </br><b>${timeSinceUpdate}</b></br></br>
+        <button class="btn2" onclick="assignToNightOut('${
+          vehicle.assetName
+        }')">Assign Night-Out</button>
+        </br></br>Location:</br>
+        <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
     }</a></div>`;
+
     servicesList.appendChild(li);
   });
 }
@@ -602,6 +782,13 @@ setInterval(async () => {
     const stoppedServices = filterStoppedVehiclesInServices(vehicles);
     console.log("Stopped in Services:", stoppedServices);
     displayServices(stoppedServices);
+
+    const filterCheckbox = document.querySelector(".filter-checkbox");
+    if (filterCheckbox) {
+      applyFilter();
+
+      vehicles.forEach((vehicle) => checkEventTypeChange(vehicle));
+    }
   }
 
   if (document.getElementById("depots-list")) {
@@ -614,6 +801,10 @@ setInterval(async () => {
     const stoppedMaintenance = filterMaintenance(vehicles);
     console.log("Stopped Maintenance:", stoppedMaintenance);
     displayMaintenance(stoppedMaintenance);
+  }
+
+  if (nightOutVehicles.length > 0) {
+    monitorVehicleChanges(vehicles);
   }
 }, refreshInterval);
 
