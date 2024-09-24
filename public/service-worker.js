@@ -1,10 +1,12 @@
-const CACHE_NAME = "my-app-cache-v1.0.11"; // Increment this on every new deployment
+const CACHE_NAME = "my-app-cache-v1.0.12"; // Update the cache version with every new deployment
 const urlsToCache = ["/", "/js/script.js", "/css/style.css"];
 
 // Install Service Worker and Cache Files
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // Force the new service worker to take over immediately
-  console.log("Installing new service worker...");
+  // Force the new service worker to take over immediately
+  self.skipWaiting();
+  console.log("Installing new service worker and caching assets...");
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log("Opened cache");
@@ -17,51 +19,51 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   console.log("Service worker activating...");
 
-  const cacheWhitelist = [CACHE_NAME];
+  const cacheWhitelist = [CACHE_NAME]; // Whitelist only the current cache version
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (!cacheWhitelist.includes(cacheName)) {
-            // Only delete caches not in the whitelist
-            console.log(`[Service worker] Deleting old cache: ${cacheName}`);
-            return caches.delete(cacheName);
+            console.log(`Deleting old cache: ${cacheName}`);
+            return caches.delete(cacheName); // Delete outdated caches
           }
         })
       );
     })
   );
 
-  self.clients.claim(); // Take control of all open clients (tabs)
+  // Take control of all open pages right after activation
+  return self.clients.claim();
 });
 
-// Network First Fetch Strategy with Cache Fallback
+// Fetch event with a Network-First Strategy
 self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Only cache successful responses (status 200)
-        if (response && response.status === 200 && response.type === "basic") {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone); // Cache the response
-          });
+        // Only cache valid responses (status 200 and type basic)
+        if (!response || response.status !== 200 || response.type !== "basic") {
+          return response;
         }
+
+        // Clone the response and store it in the cache
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+
         return response;
       })
       .catch(() => {
-        // Fallback to cache if network fails
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse; // Return cached response if available
-          }
-
-          // Optionally, serve a fallback page for failed navigations
-          if (event.request.mode === "navigate") {
-            return caches.match("/fallback.html"); // Serve a fallback page if network fails entirely
-          }
-        });
+        // On failure, fallback to cached resources
+        return caches.match(event.request);
       })
   );
+});
+
+// Listen for service worker updates and refresh pages immediately
+self.addEventListener("controllerchange", () => {
+  window.location.reload();
 });
