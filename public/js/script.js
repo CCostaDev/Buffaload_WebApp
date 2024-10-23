@@ -447,6 +447,14 @@ function filterMaintenance(vehicles) {
     });
 }
 
+// FILTER VOR VEHICLES
+
+function filterVORVehicles(vehicles) {
+  return vehicles.filter(
+    (vehicle) => vehicle.IsVor === "Yes" || vehicle.LiveDefects === "Yes"
+  );
+}
+
 // Utility function to generate Google Maps URL
 
 function generateMapsUrl(vehicle) {
@@ -637,6 +645,25 @@ function displayServices(vehicles) {
   });
 }
 
+// FORMAT DATE FOR BLUE CRYSTAL DATES
+
+function formatDate(dateString) {
+  if (!dateString) return "N/A"; // Handle missing date
+
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-GB").format(date); // Format as dd/mm/yyyy
+}
+
+function isDateInPast(dateString) {
+  if (!dateString) return false;
+
+  const date = new Date(dateString);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to make sure only date is compared
+
+  return date < today;
+}
+
 // DISPLAY DEPOTS
 
 function displayDepots(vehicles) {
@@ -654,6 +681,14 @@ function displayDepots(vehicles) {
     const now = Date.now();
     const lastUpdate = new Date(vehicle.localDate).getTime();
     const timeDifference = now - lastUpdate;
+    const serviceDueDate = vehicle.ServiceDueDate
+      ? formatDate(vehicle.ServiceDueDate)
+      : "N/A";
+    const motDueDate = vehicle.MotDueDate
+      ? formatDate(vehicle.MotDueDate)
+      : "N/A";
+    const isVor = vehicle.IsVor === "Yes" ? "Yes" : "No";
+    const LiveDefects = vehicle.LiveDefects === "Yes" ? "Yes" : "None";
 
     // Convert time difference to minutes, hours and days
     const minutes = Math.floor(timeDifference / (1000 * 60)) % 60;
@@ -669,12 +704,33 @@ function displayDepots(vehicles) {
       timeSinceUpdate = `${minutes}m`;
     }
 
+    // Set date styling based on wheter the date is in the past
+    const serviceDueDateStyled = isDateInPast(vehicle.ServiceDueDate)
+      ? `<span style="color: red;">${serviceDueDate}</span>`
+      : serviceDueDate;
+
+    const motDueDateStyled = isDateInPast(vehicle.MotDueDate)
+      ? `<span style="color: red;">${motDueDate}</span>`
+      : motDueDate;
+
+    // Determine additional info to show
+    let additionalInfo = "";
+    if (vehicle.IsVor === "Yes") {
+      additionalInfo += '<b style="color: red;">VOR</b></br>';
+    }
+    if (vehicle.LiveDefects === "Yes") {
+      additionalInfo += "<b>Live Defects</b></br>";
+    }
+
     const mapsUrl = generateMapsUrl(vehicle);
 
     const li = document.createElement("li");
     li.innerHTML = `
     <div class="card-title">${vehicle.assetName}</div> 
-    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br>
+    <div class="card-content">Last Update: </br><b>${timeSinceUpdate}</b></br></br>
+    Service Due: <b>${serviceDueDateStyled}</b></br>
+    Mot Due: <b>${motDueDateStyled}</b></br></br>
+    ${additionalInfo}</br>
     </br>Location:</br>
     <a href="${mapsUrl}" target="_blank">${
       vehicle.locationName || vehicle.formattedAddress
@@ -729,6 +785,59 @@ function displayMaintenance(vehicles) {
   });
 }
 
+//DISPLAY VOR
+
+function displayVORVehicles(vehicles) {
+  const vorList = document.getElementById("vor-list");
+  vorList.innerHTML = "";
+
+  if (vehicles.length === 0) {
+    const noVehiclesMessage = document.createElement("li");
+    noVehiclesMessage.textContent = "No VOR/ Defected Vehicles.";
+    depotsList.appendChild(noVehiclesMessage);
+    return;
+  }
+
+  vehicles.forEach((vehicle) => {
+    const serviceDueDate = vehicle.ServiceDueDate
+      ? formatDate(vehicle.ServiceDueDate)
+      : "N/A";
+    const motDueDate = vehicle.MotDueDate
+      ? formatDate(vehicle.MotDueDate)
+      : "N/A";
+
+    //Set date style based on whether the date is in the past
+    const serviceDueDateStyled = isDateInPast(vehicle.ServiceDueDate)
+      ? `<span style="color: red;">${serviceDueDate}</span>`
+      : serviceDueDate;
+
+    const motDueDateStyled = isDateInPast(vehicle.MotDueDate)
+      ? `<span style="color: red;">${motDueDate}</span>`
+      : motDueDate;
+
+    let additionalInfo = "";
+    if (vehicle.IsVor === "Yes") {
+      additionalInfo += '<b style="color: red;">VOR</b></br>';
+    }
+    if (vehicle.LiveDefects === "Yes") {
+      additionalInfo += "<b>Live Defects</b></br>";
+    }
+
+    const li = document.createElement("li");
+    li.innerHTML = `<div class="card-title">${vehicle.assetName}</div> 
+      <div class="card-content"></br>
+        Service Due: <b>${serviceDueDateStyled}</b></br>
+        MOT Due: <b>${motDueDateStyled}</b></br></br>
+        ${additionalInfo}</br>
+        Location: </br>
+        <a href="${generateMapsUrl(vehicle)}" target="_blank">
+          ${vehicle.locationName || vehicle.formattedAddress}
+        </a>
+      </div>`;
+    vorList.appendChild(li);
+  });
+}
+
 // EVENT LISTENER
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -759,6 +868,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const stoppedMaintenance = filterMaintenance(vehicles);
     console.log("Stopped in Maintenance:", stoppedMaintenance);
     displayMaintenance(stoppedMaintenance);
+  } else if (document.getElementById("vor-list")) {
+    // Logic for VOR page
+    const vorVehicles = filterVORVehicles(vehicles);
+    console.log("VOR Vehicles:", vorVehicles);
+    displayVORVehicles(vorVehicles);
   }
 });
 
@@ -801,6 +915,12 @@ setInterval(async () => {
     const stoppedMaintenance = filterMaintenance(vehicles);
     console.log("Stopped Maintenance:", stoppedMaintenance);
     displayMaintenance(stoppedMaintenance);
+  }
+
+  if (document.getElementById("vor-list")) {
+    const vorVehicles = filterVORVehicles(vehicles);
+    console.log("VOR Vehicles:", vorVehicles);
+    displayVORVehicles(vorVehicles);
   }
 
   if (nightOutVehicles.length > 0) {
