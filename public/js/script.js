@@ -44,7 +44,7 @@ async function fetchVehicles() {
     // Convert all vehicle dates from UTC to local time
     data = data.map((vehicle) => {
       let vehicleDate = new Date(vehicle.date);
-      vehicleDate.setHours(vehicleDate.getHours() + 1); // Add 1 hour
+      vehicleDate.setHours(vehicleDate.getHours() + 0); // Add 1 hour for BST or 0 for UTC
       vehicle.localDate = vehicleDate;
       return vehicle;
     });
