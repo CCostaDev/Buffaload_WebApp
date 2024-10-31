@@ -1,4 +1,4 @@
-const CACHE_NAME = "my-app-cache-v1.0.14"; // Update the cache version with every new deployment
+const CACHE_NAME = "my-app-cache-v1.0.15"; // Update the cache version with every new deployment
 const urlsToCache = ["/", "/js/script.js", "/css/style.css"];
 
 // Install Service Worker and Cache Files
